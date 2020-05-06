@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">ImageGallery</string>
+    <string name="previous">Previous</string>
+    <string name="Next">Next</string>
+</resources>
