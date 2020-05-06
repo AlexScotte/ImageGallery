@@ -1,8 +1,11 @@
 package fr.alexflex.imagegallery
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -11,31 +14,25 @@ class MainActivity : AppCompatActivity() {
     var images = emptyList<Int>()
     var currentIndex = 0
     var countDownTimer : CountDownTimer? = null
+    var currentTimerValue:Int = 5000
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         images = listOf(R.drawable.iron_man_1, R.drawable.iron_man_2, R.drawable.iron_man_3, R.drawable.iron_man_4)
-
         currentIndex = savedInstanceState?.getInt("currentIndex") ?: 0
         imageView.setImageResource(images[currentIndex])
-        ReloadCounter()
+        reloadCounter()
     }
 
     override fun onResume() {
         super.onResume()
-        ReloadCounter()
+        reloadCounter()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState?.putInt("currentIndex", currentIndex)
-    }
-
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        super.onRestoreInstanceState(savedInstanceState)
-
-        currentIndex = savedInstanceState?.getInt("currentIndex") ?: 0
     }
 
     fun onNextButtonClicked(button: View){
@@ -51,7 +48,7 @@ class MainActivity : AppCompatActivity() {
 
         }
 
-        ReloadCounter()
+        reloadCounter()
     }
 
     fun onPreviousButtonClicked(button: View){
@@ -66,17 +63,14 @@ class MainActivity : AppCompatActivity() {
             imageView.setImageResource(images[currentIndex])
         }
 
-        ReloadCounter()
+        reloadCounter()
     }
 
-    private fun ReloadCounter(){
+    private fun reloadCounter(){
 
-        if(countDownTimer != null){
-            countDownTimer?.cancel()
-            countDownTimer = null
-        }
-
-        countDownTimer = object : CountDownTimer(5000, 1000) {
+        stopCounter()
+        currentTimerValue = LocalPreferences(this).timerValue * 1000
+        countDownTimer = object : CountDownTimer(currentTimerValue.toLong(), 1000) {
             override fun onFinish() {
 
                 onNextButtonClicked(nextBtn)
@@ -87,5 +81,39 @@ class MainActivity : AppCompatActivity() {
             }
         }
         countDownTimer?.start()
+    }
+
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+
+        if(item != null){
+            when(item.itemId){
+                R.id.settings -> displaySettingsActivity()
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+
+    private fun displaySettingsActivity(){
+
+        stopCounter()
+        val intent = Intent(this, SettingsActivity::class.java)
+        intent.putExtra("currentTimerValue", currentTimerValue/1000)
+        startActivity(intent)
+    }
+
+    private fun stopCounter(){
+        if(countDownTimer != null){
+            countDownTimer?.cancel()
+            countDownTimer = null
+        }
     }
 }
